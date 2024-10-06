@@ -4,8 +4,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
-#define PORT 80
+#define PORT 8080
 
 using namespace std;
 
@@ -16,7 +17,7 @@ int main()
     int opt = 1;
     int addrlen = sizeof(svr);
     char buffer[1024] = {0};
-    char* hello = 
+    char *hello =
         "HTTP/1.1 200 OK\n"
         "Server: SimpleC++Server/1.0\r\n"
         "Content-Type: text/html\r\n"
@@ -62,6 +63,8 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+    string connected_ip = inet_ntoa(svr.sin_addr);
+    cout << connected_ip << endl;
     read(new_socket, buffer, 1024);
     cout << buffer << endl;
     send(new_socket, hello, strlen(hello), 0);
