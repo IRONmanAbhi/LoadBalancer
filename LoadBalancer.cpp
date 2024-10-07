@@ -5,14 +5,16 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <vector>
+#include <thread>
 
 #define PORT 80
-#define TARGET_IP "192.168.137.129"
 #define TARGET_PORT 8080
-
 using namespace std;
 
-void forward_request(int client_socket)
+vector<string> server_ip = {"192.168.137.128", "192.168.137.129", "192.168.137.131", "192.168.137.132"};
+
+void forward_request(int client_socket, int server_index)
 {
     int opt = 1;
     char buffer[4096] = {0};
@@ -53,7 +55,9 @@ void forward_request(int client_socket)
     target_address.sin_family = AF_INET;
     target_address.sin_port = htons(TARGET_PORT);
 
-    if (inet_pton(AF_INET, TARGET_IP, &target_address.sin_addr) <= 0)
+    string TARGET_IP = server_ip[server_index];
+
+    if (inet_pton(AF_INET, TARGET_IP.c_str(), &target_address.sin_addr) <= 0)
     {
         perror("Invalid Target Address");
         send(client_socket, error_response, strlen(error_response), 0);
@@ -73,8 +77,9 @@ void forward_request(int client_socket)
 
     send(target_socket, buffer, bytes_received, 0);
     int bytes_received_from_target = read(target_socket, buffer, sizeof(buffer));
-
+    cout << "response from server: " << buffer << endl;
     send(client_socket, buffer, bytes_received_from_target, 0);
+
     close(target_socket);
     close(client_socket);
 }
@@ -109,19 +114,23 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server, 3) < 0)
+    if (listen(server, 4) < 0)
     {
         perror("listen");
         exit(EXIT_FAILURE);
     }
 
     cout << "Server is listening on port " << PORT << endl;
-
-    while (new_socket = accept(server, (struct sockaddr *)&address, (socklen_t *)&addrlen))
+    int i = -1;
+    while (true)
     {
+        new_socket = accept(server, (struct sockaddr *)&address, (socklen_t *)&addrlen);
         string connected_ip = inet_ntoa(address.sin_addr);
         cout << "Connection accepted from :" << connected_ip << endl;
-        forward_request(new_socket);
+        i = (i + 1) % server_ip.size();
+        thread([new_socket, i]()
+               { forward_request(new_socket, i); })
+            .detach();
     }
 
     return 0;

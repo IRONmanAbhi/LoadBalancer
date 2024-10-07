@@ -16,8 +16,8 @@ int main()
     struct sockaddr_in svr;
     int opt = 1;
     int addrlen = sizeof(svr);
-    char buffer[1024] = {0};
-    char *hello =
+    char buffer[4096] = {0};
+    char *response =
         "HTTP/1.1 200 OK\n"
         "Server: SimpleC++Server/1.0\r\n"
         "Content-Type: text/html\r\n"
@@ -57,18 +57,15 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    if ((new_socket = accept(server, (struct sockaddr *)&svr, (socklen_t *)&addrlen)) < 0)
+    while (new_socket = accept(server, (struct sockaddr *)&svr, (socklen_t *)&addrlen))
     {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
+        string connected_ip = inet_ntoa(svr.sin_addr);
+        cout << connected_ip << endl;
+        read(new_socket, buffer, 4096);
+        cout << buffer << endl;
+        send(new_socket, response, strlen(response), 0);
 
-    string connected_ip = inet_ntoa(svr.sin_addr);
-    cout << connected_ip << endl;
-    read(new_socket, buffer, 1024);
-    cout << buffer << endl;
-    send(new_socket, hello, strlen(hello), 0);
-    cout << hello << endl;
+    }
 
     close(new_socket);
     shutdown(server, SHUT_RDWR);
