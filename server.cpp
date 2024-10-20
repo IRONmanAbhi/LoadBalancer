@@ -17,17 +17,17 @@ int main()
     int opt = 1;
     int addrlen = sizeof(svr);
     char buffer[4096] = {0};
-    char *response =
-        "HTTP/1.1 200 OK\n"
-        "Server: SimpleC++Server/1.0\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: 127\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "<html>"
-        "<head><title>Welcome to localhost</title></head>"
-        "<body><h1>Hello, World!</h1><p>This is a response from the server.</p></body>"
-        "</html>";
+    char response[4096] = "HTTP/1.1 200 OK\r\n"
+                          "Server: SimpleC++Server/1.0\r\n"
+                          "Content-Type: text/html\r\n"
+                          "Content-Length: 149\r\n"
+                          "Connection: close\r\n"
+                          "\r\n"
+                          "<html>\n"
+                          "<head>\n\t<title>Welcome to server</title>\n</head>\n"
+                          "<body>\n\t<h1>Hello, World!</h1>\n\t<p>This is a response from the server.</p>\n"
+                          "</body>\n"
+                          "</html>";
 
     if ((server = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -64,7 +64,6 @@ int main()
         read(new_socket, buffer, 4096);
         cout << buffer << endl;
         send(new_socket, response, strlen(response), 0);
-
     }
 
     close(new_socket);
